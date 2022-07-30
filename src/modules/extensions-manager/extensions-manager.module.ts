@@ -18,7 +18,8 @@ const extensionsManagerConfigProvider: Provider = {
   providers: [
     ExtensionsManagerService,
     extensionsManagerConfigProvider
-  ]
+  ],
+  exports: [ExtensionsManagerService]
 })
 export class ExtensionsManagerModule {
   

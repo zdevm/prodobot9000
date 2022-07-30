@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import paths from './configurations/paths';
 import { ExtensionsManagerModule } from './modules/extensions-manager/extensions-manager.module';
+import { RateProviderModule } from './modules/rate-provider/rate-provider.module';
 
 const configSettings: ConfigModuleOptions = {
   isGlobal: true,
@@ -13,7 +14,8 @@ const configSettings: ConfigModuleOptions = {
 @Module({
   imports: [
     ExtensionsManagerModule,
-    ConfigModule.forRoot(configSettings)
+    ConfigModule.forRoot(configSettings),
+    RateProviderModule
   ],
   controllers: [AppController],
   providers: [AppService],
