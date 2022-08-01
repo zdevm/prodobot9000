@@ -8,6 +8,7 @@ import { RateProviderModule } from '@modules/rate-provider/rate-provider.module'
 import { ProductModule } from '@modules/product/product.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductRateModule } from './modules/product-rate/product-rate.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 const configSettings: ConfigModuleOptions = {
   isGlobal: true,
@@ -27,7 +28,8 @@ const configSettings: ConfigModuleOptions = {
       }),
       inject: [ConfigService]
     }),
-    ProductRateModule
+    ProductRateModule,
+    UploadModule
   ],
   controllers: [AppController],
   providers: [AppService],

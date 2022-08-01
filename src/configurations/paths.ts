@@ -1,6 +1,10 @@
 import { registerAs } from '@nestjs/config';
-import * as path from 'path';
+import { join } from 'path';
+
+const root = join(__dirname, '../..');
 
 export default registerAs('paths', () => ({
-  root: path.join(__dirname, '../..')
+  root,
+  uploads: join(root, '/uploads')
 }))
+
