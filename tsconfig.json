@@ -16,6 +16,26 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@modules/*": [
+        "./src/modules/*"
+      ],
+      "@interfaces/*": [
+        "./src/interfaces/*"
+      ],
+      "@classes/*": [
+        "./src/classes/*"
+      ],
+      "@configurations/*": [
+        "./src/configurations/*"
+      ],
+      "@enums/*": [
+        "./src/enums/*"
+      ],
+      "@services/*": [
+        "./src/services/*"
+      ]
+    }
+  },
 }

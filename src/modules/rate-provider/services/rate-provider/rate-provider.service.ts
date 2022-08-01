@@ -2,9 +2,13 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { Extension } from 'src/modules/extensions-manager/classes/extension';
 import { ExtensionsManagerService } from 'src/modules/extensions-manager/services/extensions-manager.service';
+import { RateProvider } from '@modules/rate-provider/interfaces/rate-provider.interface';
+import { lastValueFrom, map } from 'rxjs';
+import { RateProviderFormOptions } from '@modules/rate-provider/interfaces/form-options.interface';
+import { Currency } from '@enums/currency.enum';
 
 @Injectable()
-export class RateProviderService {
+export class RateProviderService implements RateProvider {
 
   private extensionsMap: Map<string, Extension> = new Map();
 
@@ -15,9 +19,29 @@ export class RateProviderService {
     });
   }
 
+
   async getProduct(provider: string, dto: any) { 
     const ext = this.getExtension(provider);
-    this.httpService.post(`${ext.endpoint}/price`, dto).subscribe(res => console.log(res.data))
+    const obs$ = this.httpService.post<{price: number; currency: Currency}>(`${ext.endpoint}/price`, dto, { timeout: 60000 })
+                                 .pipe(map(res => res.data))
+    return lastValueFrom(obs$);
+  }
+
+  async getName() {
+    throw new Error('Method not implemented.');
+    return '';
+  }
+
+  async getWebsite()  {
+    throw new Error('Method not implemented.');
+    return '';
+  }
+
+  async getFormOptions(provider: string) {
+    const ext = this.getExtension(provider);
+    const obs$ = this.httpService.get<RateProviderFormOptions>(`${ext.endpoint}/form-options`)
+                                 .pipe(map(res => res.data))
+    return lastValueFrom(obs$);
   }
 
   private getExtension(slug: string) {
@@ -27,6 +51,5 @@ export class RateProviderService {
     }
     return ext;
   }
-
 
 }

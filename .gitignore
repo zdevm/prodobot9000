@@ -36,3 +36,5 @@ lerna-debug.log*
 
 # Extensions
 /extensions/**/*
+
+.env

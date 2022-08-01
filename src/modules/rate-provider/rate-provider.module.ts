@@ -8,6 +8,7 @@ import { RateProviderService } from './services/rate-provider/rate-provider.serv
     ExtensionsManagerModule,
     HttpModule.register({})
   ],
-  providers: [RateProviderService]
+  providers: [RateProviderService],
+  exports: [RateProviderService]
 })
 export class RateProviderModule {}
