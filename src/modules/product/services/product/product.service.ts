@@ -1,3 +1,5 @@
+import { PaginateOptions } from '@classes/paginate-options';
+import { Pagination } from '@classes/pagination';
 import { ProductRate } from '@modules/product-rate/classes/product-rate';
 import { ProductRateService } from '@modules/product-rate/services/product-rate/product-rate.service';
 import { Product } from '@modules/product/classes/product';
@@ -14,6 +16,10 @@ export class ProductService {
   public constructor(private readonly productRepository: ProductRepository,
                      private readonly productRateService: ProductRateService,
                      private readonly rateProviderService: RateProviderService) {}
+
+  getProductsPaginated(paginateOptions: PaginateOptions = new PaginateOptions()): Promise<Pagination<Product>> {
+    return this.productRepository.getProductsPaginated(paginateOptions);
+  }
 
   findById(id: string): Promise<Product> {
     return this.productRepository.findById(id);

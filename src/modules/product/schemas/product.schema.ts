@@ -1,6 +1,7 @@
 import { mongooseCommonSchemaOptions } from "@configurations/mongoose-schema-options";
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, SchemaTypes } from "mongoose";
+import * as mongoosePaginate from 'mongoose-paginate-v2';
 
 export type ProductDocument = MongooseProduct & Document;
 
@@ -25,3 +26,5 @@ export class MongooseProduct {
 }
 
 export const ProductSchema = SchemaFactory.createForClass(MongooseProduct);
+
+ProductSchema.plugin(mongoosePaginate);

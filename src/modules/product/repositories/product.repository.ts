@@ -1,6 +1,9 @@
+import { PaginateOptions } from "@classes/paginate-options";
+import { Pagination } from "@classes/pagination";
 import { InjectModel } from "@nestjs/mongoose";
+import { RepositoryHelperService } from "@services/repository-helper.service";
 import { plainToInstance } from "class-transformer";
-import { Model } from "mongoose";
+import { Model, PaginateModel } from "mongoose";
 import { Product } from "../classes/product";
 import { CreateProductDto } from "../dto/create-product.dto";
 import { MongooseProduct, ProductDocument } from "../schemas/product.schema";
@@ -8,7 +11,7 @@ import { MongooseProduct, ProductDocument } from "../schemas/product.schema";
 export class ProductRepository {
 
   @InjectModel(MongooseProduct.name)
-  model: Model<ProductDocument>;
+  model: PaginateModel<ProductDocument>;
 
   create(dto: CreateProductDto) {
     return this.model.create(dto).then(doc => ProductRepository.transform(doc));
@@ -16,6 +19,12 @@ export class ProductRepository {
   
   findById(id: string) {
     return this.model.findById(id).then(doc => ProductRepository.transform(doc));
+  }
+
+  // TODO will later be replaced getByUser
+  getProductsPaginated(paginateOptions: PaginateOptions): Promise<Pagination<Product>> {
+    return this.model.paginate({}, { lean: true, leanWithId: true, ...paginateOptions })
+                     .then(RepositoryHelperService.fromPaginatedResponse);
   }
 
   /**

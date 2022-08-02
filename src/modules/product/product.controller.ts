@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, ValidationPipe } from '@nestjs/common';
+import { PaginateOptions } from '@classes/paginate-options';
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, Query, ValidationPipe } from '@nestjs/common';
 import { IsMongoIdPipe } from 'src/pipes/is-mongo-id.pipe';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductService } from './services/product/product.service';
@@ -15,6 +16,15 @@ export class ProductController {
       throw new NotFoundException();
     }
     return product;
+  }
+
+  @Get()
+  async getProducts(@Query('page', ParseIntPipe) page: number,
+                    @Query('limit', ParseIntPipe) perPage: number) {
+    const paginateOptions = new PaginateOptions();
+    paginateOptions.page = page;
+    paginateOptions.limit = perPage;
+    return this.productService.getProductsPaginated(paginateOptions);
   }
 
   @Post()
