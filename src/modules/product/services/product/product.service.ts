@@ -15,6 +15,10 @@ export class ProductService {
                      private readonly productRateService: ProductRateService,
                      private readonly rateProviderService: RateProviderService) {}
 
+  findById(id: string): Promise<Product> {
+    return this.productRepository.findById(id);
+  }
+
   create(dto: CreateProductDto) {
     return this.productRepository.create(dto);
   }
