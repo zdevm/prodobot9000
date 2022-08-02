@@ -23,6 +23,10 @@ export class ProductService {
     return this.productRepository.create(dto);
   }
 
+  deleteById(id: string): Promise<Product> {
+    return this.productRepository.deleteById(id);
+  }
+
   /**
    * Set the data that will be sent to specified provider when @command command is being used.
    * For example, for getProduct { url: '{{product's url at provider's website}}' } would be used 

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Post, Put, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, ValidationPipe } from '@nestjs/common';
 import { IsMongoIdPipe } from 'src/pipes/is-mongo-id.pipe';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductService } from './services/product/product.service';
@@ -20,6 +20,15 @@ export class ProductController {
   @Post()
   create(@Body(ValidationPipe) dto: CreateProductDto) {
     return this.productService.create(dto)
+  }
+
+  @Delete(':id')
+  async delete(@Param('id', IsMongoIdPipe) id: string) {
+    const deleted = await this.productService.deleteById(id);
+    if (!deleted) {
+      throw new NotFoundException();
+    }
+    return deleted;
   }
 
   @Get(':id/scan-prices')

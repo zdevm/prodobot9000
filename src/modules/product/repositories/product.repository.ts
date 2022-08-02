@@ -17,6 +17,16 @@ export class ProductRepository {
   findById(id: string) {
     return this.model.findById(id).then(doc => ProductRepository.transform(doc));
   }
+
+  /**
+   * Deletes specified product.
+   * @param id 
+   * @returns Deleted product
+  */
+  deleteById(id: string) {
+    return this.model.findByIdAndRemove(id, { lean: true }).then(ProductRepository.transform)
+  }
+
   /**
    * 
    * @param id 
