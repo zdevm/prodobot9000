@@ -9,6 +9,11 @@ export class LocalFileRepository {
   @InjectModel(MongooseFile.name)
   private model: Model<FileDocument>;
 
+  findById(id: string) {
+    return this.model.findById(id, {}, { lean: true })
+                     .then(LocalFileRepository.transform);
+  }
+
   findByFilename(filename: string) {
     return this.model.findOne({ filename }, { lean: true })
                      .then(LocalFileRepository.transform);

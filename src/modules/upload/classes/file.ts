@@ -1,6 +1,8 @@
 import { Expose } from "class-transformer";
+import { readFileSync } from "fs";
 
 export class File {
+  private buffer?: Buffer;
 
   @Expose()
   public id: string;
@@ -14,5 +16,12 @@ export class File {
   public mimeType: string | null = null;
   @Expose()
   public storage: 'local';
+
+  get content(): Buffer {
+    if (!this.buffer) {
+      this.buffer = readFileSync(this.fullPath)
+    }
+    return this.buffer;
+  }
 
 }

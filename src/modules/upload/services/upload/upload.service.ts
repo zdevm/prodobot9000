@@ -33,6 +33,10 @@ export class LocalUploadService implements UploadService {
     return this.localFileRepository.create(file);
   }
 
+  getUploadedFileById(id: string): Promise<File> {
+    return this.localFileRepository.findById(id);
+  }
+
   private fileSave(filename: string, data: Buffer, details?: { mimeType: string; }): Promise<File> {
     return new Promise(async (resolve, reject) => {
       // check if there is already a file with same name in database
