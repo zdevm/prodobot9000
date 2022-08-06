@@ -2,6 +2,7 @@ import { PaginateOptions } from '@classes/paginate-options';
 import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, Query, ValidationPipe } from '@nestjs/common';
 import { IsMongoIdPipe } from 'src/pipes/is-mongo-id.pipe';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductService } from './services/product/product.service';
 
 @Controller('products')
@@ -30,6 +31,12 @@ export class ProductController {
   @Post()
   create(@Body(ValidationPipe) dto: CreateProductDto) {
     return this.productService.create(dto)
+  }
+
+  @Put(':id')
+  update(@Param('id', IsMongoIdPipe) id: string,
+         @Body(ValidationPipe) dto: UpdateProductDto) {
+    return this.productService.updateById(id, dto)
   }
 
   @Delete(':id')

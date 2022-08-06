@@ -1,4 +1,4 @@
-import { Expose } from "class-transformer";
+import { Expose, Type } from "class-transformer";
 
 
 export class Product {
@@ -21,5 +21,9 @@ export class Product {
       getProduct: any;
     }
   }
+
+  @Expose()
+  @Type(() => String)
+  image?: string;
 
 }

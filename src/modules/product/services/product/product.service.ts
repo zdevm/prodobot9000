@@ -4,6 +4,7 @@ import { ProductRate } from '@modules/product-rate/classes/product-rate';
 import { ProductRateService } from '@modules/product-rate/services/product-rate/product-rate.service';
 import { Product } from '@modules/product/classes/product';
 import { CreateProductDto } from '@modules/product/dto/create-product.dto';
+import { UpdateProductDto } from '@modules/product/dto/update-product.dto';
 import { ProductRepository } from '@modules/product/repositories/product.repository';
 import { RateProviderService } from '@modules/rate-provider/services/rate-provider/rate-provider.service';
 import { Injectable } from '@nestjs/common';
@@ -23,6 +24,10 @@ export class ProductService {
 
   findById(id: string): Promise<Product> {
     return this.productRepository.findById(id);
+  }
+
+  updateById(id: string, dto: UpdateProductDto): Promise<Product> {
+    return this.productRepository.updateById(id, dto);
   }
 
   create(dto: CreateProductDto) {

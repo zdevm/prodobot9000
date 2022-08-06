@@ -3,7 +3,7 @@ import { Pagination } from "@classes/pagination";
 import { InjectModel } from "@nestjs/mongoose";
 import { RepositoryHelperService } from "@services/repository-helper.service";
 import { plainToInstance } from "class-transformer";
-import { Model, PaginateModel } from "mongoose";
+import { PaginateModel } from "mongoose";
 import { Product } from "../classes/product";
 import { CreateProductDto } from "../dto/create-product.dto";
 import { MongooseProduct, ProductDocument } from "../schemas/product.schema";
@@ -18,7 +18,7 @@ export class ProductRepository {
   }
   
   findById(id: string) {
-    return this.model.findById(id).then(doc => ProductRepository.transform(doc));
+    return this.model.findById(id, {}).then(ProductRepository.transform);
   }
 
   // TODO will later be replaced getByUser
@@ -33,7 +33,7 @@ export class ProductRepository {
    * @returns Deleted product
   */
   deleteById(id: string) {
-    return this.model.findByIdAndRemove(id, { lean: true }).then(ProductRepository.transform)
+    return this.model.findByIdAndRemove(id).then(ProductRepository.transform)
   }
 
   /**
@@ -43,7 +43,7 @@ export class ProductRepository {
    * @returns Updated product.
    */
   updateById(id: string, partial: Partial<Product>): Promise<Product> {
-    return this.model.findOneAndUpdate({_id: id}, partial, { new: true, lean: true })
+    return this.model.findByIdAndUpdate(id, partial, { new: true })
                      .then(doc => {
                       if (!doc) { // failed to find or update 
                         throw new Error('Failed to update document');
@@ -53,14 +53,7 @@ export class ProductRepository {
   }
 
   static transform(doc: ProductDocument) {
-    if (!doc) {
-      return undefined;
-    }
-    let plain = doc; 
-    if (doc.toObject) {
-      plain = doc.toObject();
-    }
-    return plainToInstance(Product, plain, { excludeExtraneousValues: true });
+    return plainToInstance(Product, doc, { excludeExtraneousValues: true });
   }
 
 }
