@@ -1,3 +1,5 @@
+import { Product } from "@modules/product/classes/product";
+import { ProductDocument } from "@modules/product/schemas/product.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { plainToInstance } from "class-transformer";
 import { Model, mongo } from "mongoose";
@@ -29,14 +31,35 @@ export class ProductRateRepository {
         }
       }, {
         '$group': {
-          '_id': '$providerSlug',
+          '_id': '$providerSlug', 
           'rate': {
             '$first': '$$ROOT'
+          }, 
+          'product': {
+            '$first': '$product'
           }
         }
-      }
-    ]).then((docs: {_id: string; rate: ProductRateDocument}[]) =>
-      docs.map(rate => ProductRateRepository.transform(rate.rate))
+      }, {
+        '$lookup': {
+          'from': 'products', 
+          'localField': 'product', 
+          'foreignField': '_id', 
+          'as': 'product'
+        }
+      }, {
+        '$project': {
+          '_id': 1, 
+          'rate': 1, 
+          'product': {
+            '$arrayElemAt': [
+              '$product', 0
+            ]
+          }
+        }
+      } // _id = providerSlug
+    ]).then((docs: {_id: string; rate: ProductRateDocument, product: Partial<ProductDocument>}[]) =>
+      docs.filter(d => (d.product?.providers || []).includes(d._id))
+          .map(rate => ProductRateRepository.transform(rate.rate))
     )
   }
 
