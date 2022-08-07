@@ -17,7 +17,7 @@ export class HelperService {
    * @param obj 
    * @returns 
    */
-  static isEmptyObject(obj?: object) {
+  static isEmptyObjectOrFalsy(obj?: object) {
     return !obj || (typeof obj !== 'object') || !Object.keys(obj).length
   }
 

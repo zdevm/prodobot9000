@@ -9,7 +9,7 @@ import { ProductRepository } from '@modules/product/repositories/product.reposit
 import { RateProviderService } from '@modules/rate-provider/services/rate-provider/rate-provider.service';
 import { Injectable } from '@nestjs/common';
 import { HelperService } from '@services/helper.service';
-import { set } from 'lodash';
+import { set, remove, compact } from 'lodash';
 
 @Injectable()
 export class ProductService {
@@ -60,6 +60,35 @@ export class ProductService {
     // if provider does no exists in providersForm, it will be set
     // insert form
     set(productPartial, `providersForms.${providerSlug}.${command}`, form);
+    // update database
+    const updatedProduct = await this.productRepository.updateById(productId, productPartial);
+    return updatedProduct;
+  }
+
+  /**
+   * Removes specified command's form from provider's form options.
+   * If there are no forms of specified supplier in 'providersForms', will also remove provider from 'providers' array.
+   * @param productId 
+   * @param providerSlug 
+   * @param command example: 'getProduct'
+   */
+   async removeProviderForm(productId: string, providerSlug: string, command: string) {
+    const product = await this.productRepository.findById(productId);
+    if (!product) {
+      throw new Error('Specified product was not found!');
+    }
+    const productPartial: Partial<Product> = {
+      providers: product.providers || [],
+      providersForms: product.providersForms || {}
+    };
+    if (productPartial.providersForms[providerSlug]?.[command]) {
+      delete productPartial.providersForms[providerSlug][command];
+    }
+    if (!productPartial.providersForms[providerSlug]
+        || !compact(Object.values(productPartial.providersForms[providerSlug])).length ) {
+      delete productPartial.providersForms[providerSlug];
+      remove(productPartial.providers, slug => slug === providerSlug);
+    }
     // update database
     const updatedProduct = await this.productRepository.updateById(productId, productPartial);
     return updatedProduct;

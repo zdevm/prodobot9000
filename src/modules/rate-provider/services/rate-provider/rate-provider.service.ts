@@ -19,6 +19,13 @@ export class RateProviderService implements RateProvider {
     });
   }
 
+  getProviders() {
+    return Array.from(this.extensionsMap.values()).map(ext => ({
+      name: ext.name,
+      description: ext.description,
+      slug: ext.slug
+    }));
+  }
 
   async getProduct(provider: string, dto: any) { 
     const ext = this.getExtension(provider);
@@ -27,14 +34,12 @@ export class RateProviderService implements RateProvider {
     return lastValueFrom(obs$);
   }
 
-  async getName() {
-    throw new Error('Method not implemented.');
-    return '';
+  async getName(provider: string) {
+    return Promise.resolve(this.getExtension(provider).name);
   }
 
-  async getWebsite()  {
-    throw new Error('Method not implemented.');
-    return '';
+  async getWebsite(provider: string)  {
+    return Promise.resolve(this.getExtension(provider).description);
   }
 
   async getFormOptions(provider: string) {

@@ -18,10 +18,10 @@ export class MongooseProduct {
   @Prop({ type: SchemaTypes.String, required: false, default: () => '' })
   description: string;
 
-  @Prop({ type: [SchemaTypes.String] })
+  @Prop({ type: [SchemaTypes.String], default: () => [] })
   providers: string[];
 
-  @Prop({ type: SchemaTypes.Mixed })
+  @Prop({ type: SchemaTypes.Mixed, default: () => {} })
   providersForms: any;
 
   @Prop({ type: SchemaTypes.ObjectId, ref: MongooseFile.name })

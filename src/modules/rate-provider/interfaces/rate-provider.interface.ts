@@ -3,9 +3,9 @@ import { RateProviderFormOptions } from "./form-options.interface";
 
 export interface RateProvider {
 
-  getName(): Promise<string>;
+  getName(provider: string): Promise<string>;
 
-  getWebsite(): Promise<string | null>;
+  getWebsite(provider: string): Promise<string | null>;
 
   getFormOptions(provider: string): Promise<RateProviderFormOptions>;
 

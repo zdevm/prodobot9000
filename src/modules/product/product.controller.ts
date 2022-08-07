@@ -53,12 +53,20 @@ export class ProductController {
     return this.productService.scanPrices(productId);
   }
 
+  // TODO validate form
   @Put(':id/provider-form/:providerSlug/:command')
   setProviderForm(@Param('id', IsMongoIdPipe) productId: string,
                   @Param('providerSlug') providerSlug: string,
                   @Param('command') command: string,
                   @Body() form: any) {
     return this.productService.setProviderForm(productId, providerSlug, command, form);
+  }
+
+  @Delete(':id/provider-form/:providerSlug/:command')
+  removeProviderForm(@Param('id', IsMongoIdPipe) productId: string,
+                     @Param('providerSlug') providerSlug: string,
+                     @Param('command') command: string) {
+    return this.productService.removeProviderForm(productId, providerSlug, command);
   }
 
 }

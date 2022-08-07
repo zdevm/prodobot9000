@@ -6,6 +6,11 @@ export class RateProviderController {
 
   constructor(private providerService: RateProviderService) {}
 
+  @Get()
+  async getProviders() {
+    return this.providerService.getProviders();
+  }
+
   @Get(':provider/form-options')
   async getProviderFormOptions(@Param('provider') provider: string) {
     try {
