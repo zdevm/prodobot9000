@@ -49,8 +49,9 @@ export class ProductController {
   }
 
   @Get(':id/scan-prices')
-  scanPrices(@Param('id', IsMongoIdPipe) productId: string) {
-    return this.productService.scanPrices(productId);
+  scanPrices(@Param('id', IsMongoIdPipe) productId: string,
+             @Query('mock') mock: boolean = false) {
+    return this.productService.scanPrices(productId, mock);
   }
 
   // TODO validate form

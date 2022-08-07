@@ -8,7 +8,9 @@ import { UpdateProductDto } from '@modules/product/dto/update-product.dto';
 import { ProductRepository } from '@modules/product/repositories/product.repository';
 import { RateProviderService } from '@modules/rate-provider/services/rate-provider/rate-provider.service';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { HelperService } from '@services/helper.service';
+import { readFileSync } from 'fs';
 import { set, remove, compact } from 'lodash';
 
 @Injectable()
@@ -16,7 +18,8 @@ export class ProductService {
 
   public constructor(private readonly productRepository: ProductRepository,
                      private readonly productRateService: ProductRateService,
-                     private readonly rateProviderService: RateProviderService) {}
+                     private readonly rateProviderService: RateProviderService,
+                     private readonly configService: ConfigService) {}
 
   getProductsPaginated(paginateOptions: PaginateOptions = new PaginateOptions()): Promise<Pagination<Product>> {
     return this.productRepository.getProductsPaginated(paginateOptions);
@@ -94,7 +97,13 @@ export class ProductService {
     return updatedProduct;
   }
 
-  async scanPrices(id: string) {
+  async scanPrices(id: string, mock = false) {
+    // get mock
+    if (mock) {
+      const mockPath = this.configService.getOrThrow('paths.mock');
+      return JSON.parse(readFileSync(`${mockPath}/mock_getProduct.json`).toString('utf8'));
+    }
+    //
     const product = await this.productRepository.findById(id);
     if (!product) {
       throw new Error('Specified product was not found!');

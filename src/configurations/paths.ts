@@ -5,6 +5,7 @@ const root = join(__dirname, '../..');
 
 export default registerAs('paths', () => ({
   root,
-  uploads: join(root, '/uploads')
+  uploads: join(root, '/uploads'),
+  mock: join(root, '/mock')
 }))
 

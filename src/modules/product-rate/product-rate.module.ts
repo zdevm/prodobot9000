@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ProductRateRepository } from './repositories/product-rate.repository';
 import { MongooseProductRate, ProductRateSchema } from './schemas/product-rate.schema';
 import { ProductRateService } from './services/product-rate/product-rate.service';
+import { ProductRateController } from './product-rate.controller';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { ProductRateService } from './services/product-rate/product-rate.service
     ])
   ],
   providers: [ProductRateService, ProductRateRepository],
-  exports: [ProductRateService]
+  exports: [ProductRateService],
+  controllers: [ProductRateController]
 })
 export class ProductRateModule {}

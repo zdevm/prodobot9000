@@ -11,4 +11,12 @@ export class ProductRateService {
     return this.repository.insertMany(rates);
   }
 
+  /**
+   * Returns last scanned rate of each provider of the specified product.
+   * @param productId Product's rates we want to retrieve
+   */
+  getLatestOfEachProvider(productId: string): Promise<ProductRate[]> {
+    return this.repository.getLatestOfEachProvider(productId);
+  }
+
 }
