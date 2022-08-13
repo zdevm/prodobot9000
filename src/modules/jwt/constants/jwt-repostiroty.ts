@@ -1,0 +1,1 @@
+export const JwtRepositoryInjectionToken = 'JWT_REPOSITORY';

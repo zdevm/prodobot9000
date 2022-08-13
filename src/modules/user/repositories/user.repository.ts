@@ -18,6 +18,14 @@ export class UserRepository {
     return this.model.create(user).then(UserRepository.transform);
   }
 
+  findById(id: string): Promise<User | undefined> {
+    return this.model.findById(id).then(doc => <User>UserRepository.transform(doc))
+  }
+
+  findOneByEmail(email: string): Promise<User | undefined> {
+    return this.model.findOne({ email }).then(doc => <User>UserRepository.transform(doc))
+  }
+
   static transform(doc: UserDocument): User | User[] {
     return plainToInstance(User, doc, { excludeExtraneousValues: true })
   }

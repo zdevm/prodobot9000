@@ -10,10 +10,17 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ProductRateModule } from './modules/product-rate/product-rate.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { UserModule } from './modules/user/user.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { MagicCodeAuthModule } from './modules/magic-code-auth/magic-code-auth.module';
+import jwt from '@configurations/jwt';
+import { MailerModule } from '@nestjs-modules/mailer';
+import mailer from '@configurations/mailer';
+import redis from '@configurations/redis';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 const configSettings: ConfigModuleOptions = {
   isGlobal: true,
-  load: [paths]
+  load: [paths, jwt, mailer, redis]
 }
 
 @Module({
@@ -29,9 +36,26 @@ const configSettings: ConfigModuleOptions = {
       }),
       inject: [ConfigService]
     }),
+    MailerModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        transport: configService.getOrThrow('mailer.smtpUrl'),
+        defaults: {
+          from: `${configService.getOrThrow('mailer.fromName')}" <${configService.getOrThrow('mailer.fromSender')}>`,
+        },
+      }),
+      inject: [ConfigService]
+    }),
     ProductRateModule,
     UploadModule,
-    UserModule
+    UserModule,
+    AuthModule,
+    MagicCodeAuthModule,
+    RedisModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        config: { url: configService.getOrThrow('redis.url') }
+      }),
+      inject: [ConfigService]
+    })
   ],
   controllers: [AppController],
   providers: [AppService],
