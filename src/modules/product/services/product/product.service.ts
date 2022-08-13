@@ -25,6 +25,10 @@ export class ProductService {
     return this.productRepository.getProductsPaginated(paginateOptions);
   }
 
+  getUserProductsPaginated(userId: string, paginateOptions: PaginateOptions = new PaginateOptions()): Promise<Pagination<Product>> {
+    return this.productRepository.getUserProductsPaginated(userId, paginateOptions);
+  }
+  
   findById(id: string): Promise<Product> {
     return this.productRepository.findById(id);
   }

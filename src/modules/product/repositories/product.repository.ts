@@ -27,6 +27,11 @@ export class ProductRepository {
                      .then(RepositoryHelperService.fromPaginatedResponse);
   }
 
+  getUserProductsPaginated(userId: string, paginateOptions: PaginateOptions): Promise<Pagination<Product>> {
+    return this.model.paginate({user: userId}, { lean: true, leanWithId: true, ...paginateOptions })
+                     .then(RepositoryHelperService.fromPaginatedResponse);
+  }
+
   /**
    * Deletes specified product.
    * @param id 

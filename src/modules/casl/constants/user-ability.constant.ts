@@ -1,0 +1,1 @@
+export const UserAbilityProp = 'CASL_USER_ABILITY';

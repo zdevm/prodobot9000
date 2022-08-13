@@ -1,4 +1,6 @@
+import { User } from "@modules/user/classes/user";
 import { Expose, Type } from "class-transformer";
+import { StringIdOrInstanceTransform } from "src/decorators/id-or-object.decorator";
 
 
 export class Product {
@@ -21,6 +23,10 @@ export class Product {
       getProduct: any;
     }
   }
+
+  @Expose()
+  @StringIdOrInstanceTransform(User)
+  public user: string | User;
 
   @Expose()
   @Type(() => String)

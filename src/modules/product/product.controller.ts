@@ -1,18 +1,27 @@
 import { PaginateOptions } from '@classes/paginate-options';
-import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, Query, ValidationPipe } from '@nestjs/common';
+import { AuthUserId } from '@modules/auth/decorators/auth-user.decorator';
+import { JwtGuard } from '@modules/auth/decorators/jwt-guard.decorator';
+import { AppAbility } from '@modules/casl/classes/casl-ability.factory';
+import { UserAbility } from '@modules/casl/decorators/user-ability';
+import { CreateUserAbilityInterceptor } from '@modules/casl/interceptors/create-user-ability/create-user-ability.interceptor';
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, Query,  UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { PermissionsHelperService } from '@services/permissions-helper.service';
 import { IsMongoIdPipe } from 'src/pipes/is-mongo-id.pipe';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductService } from './services/product/product.service';
 
 @Controller('products')
+@JwtGuard()
+@UseInterceptors(CreateUserAbilityInterceptor)
 export class ProductController {
 
   public constructor(private productService: ProductService) {}
 
   @Get(':id')
-  async getProduct(@Param('id', IsMongoIdPipe) productId: string) {
-    const product = await this.productService.findById(productId)
+  async getProduct(@Param('id', IsMongoIdPipe) productId: string, @UserAbility() userAbility?: AppAbility) {
+    const product = await this.productService.findById(productId);
+    PermissionsHelperService.canReadOrThrow(product, userAbility);
     if (!product) {
       throw new NotFoundException();
     }
@@ -21,26 +30,31 @@ export class ProductController {
 
   @Get()
   async getProducts(@Query('page', ParseIntPipe) page: number,
-                    @Query('limit', ParseIntPipe) perPage: number) {
+                    @Query('limit', ParseIntPipe) perPage: number,
+                    @AuthUserId() userId: string) {
     const paginateOptions = new PaginateOptions();
     paginateOptions.page = page;
     paginateOptions.limit = perPage;
-    return this.productService.getProductsPaginated(paginateOptions);
+    return this.productService.getUserProductsPaginated(userId, paginateOptions);
   }
 
   @Post()
-  create(@Body(ValidationPipe) dto: CreateProductDto) {
+  create(@Body(ValidationPipe) dto: CreateProductDto, @AuthUserId() userId: string) {
+    dto.user = userId;
     return this.productService.create(dto)
   }
 
   @Put(':id')
-  update(@Param('id', IsMongoIdPipe) id: string,
-         @Body(ValidationPipe) dto: UpdateProductDto) {
+  async update(@Param('id', IsMongoIdPipe) id: string,
+         @Body(ValidationPipe) dto: UpdateProductDto,
+         @UserAbility() userAbility?: AppAbility) {
+    await PermissionsHelperService.canUpdateOrThrowAsync(this.productService.findById(id), userAbility);
     return this.productService.updateById(id, dto)
   }
 
   @Delete(':id')
-  async delete(@Param('id', IsMongoIdPipe) id: string) {
+  async delete(@Param('id', IsMongoIdPipe) id: string, @UserAbility() userAbility?: AppAbility) {
+    await PermissionsHelperService.canDeleteOrThrowAsync(this.productService.findById(id), userAbility);
     const deleted = await this.productService.deleteById(id);
     if (!deleted) {
       throw new NotFoundException();
@@ -49,24 +63,30 @@ export class ProductController {
   }
 
   @Get(':id/scan-prices')
-  scanPrices(@Param('id', IsMongoIdPipe) productId: string,
-             @Query('mock') mock: boolean = false) {
+  async scanPrices(@Param('id', IsMongoIdPipe) productId: string,
+                   @Query('mock') mock: boolean = false,
+                   @UserAbility() userAbility?: AppAbility) {
+    await PermissionsHelperService.canReadOrThrowAsync(this.productService.findById(productId), userAbility);
     return this.productService.scanPrices(productId, mock);
   }
 
   // TODO validate form
   @Put(':id/provider-form/:providerSlug/:command')
-  setProviderForm(@Param('id', IsMongoIdPipe) productId: string,
-                  @Param('providerSlug') providerSlug: string,
-                  @Param('command') command: string,
-                  @Body() form: any) {
+  async setProviderForm(@Param('id', IsMongoIdPipe) productId: string,
+                        @Param('providerSlug') providerSlug: string,
+                        @Param('command') command: string,
+                        @Body() form: any,
+                        @UserAbility() userAbility?: AppAbility) {
+    await PermissionsHelperService.canUpdateOrThrowAsync(this.productService.findById(productId), userAbility);
     return this.productService.setProviderForm(productId, providerSlug, command, form);
   }
 
   @Delete(':id/provider-form/:providerSlug/:command')
-  removeProviderForm(@Param('id', IsMongoIdPipe) productId: string,
-                     @Param('providerSlug') providerSlug: string,
-                     @Param('command') command: string) {
+  async removeProviderForm(@Param('id', IsMongoIdPipe) productId: string,
+                           @Param('providerSlug') providerSlug: string,
+                           @Param('command') command: string,
+                           @UserAbility() userAbility?: AppAbility) {
+    await PermissionsHelperService.canUpdateOrThrowAsync(this.productService.findById(productId), userAbility);
     return this.productService.removeProviderForm(productId, providerSlug, command);
   }
 

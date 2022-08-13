@@ -9,4 +9,6 @@ export class CreateProductDto {
   @IsOptional()
   description?: string;
 
+  user?: string;
+
 }
