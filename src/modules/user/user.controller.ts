@@ -1,5 +1,5 @@
 import { JwtGuard } from '@modules/auth/decorators/jwt-guard.decorator';
-import { BadRequestException, Body, Controller, Get, Post, Request, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Request, ValidationPipe } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserService } from './services/user/user.service';
@@ -21,6 +21,15 @@ export class UserController {
       return await this.userService.register(dto);
     } catch (ex) {
       throw new BadRequestException();
+    }
+  }
+
+  @Get(':email/exists')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async emailExists(@Param('email') email: string) {
+    const user = await this.userService.findOneByEmail(email);
+    if (!user) {
+      throw new NotFoundException();
     }
   }
 
