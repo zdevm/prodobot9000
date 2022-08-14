@@ -31,10 +31,18 @@ export class MagicCodeAuthService {
 
   async finishValidation(id: string, dto: FinishValidationDto) {
     let auth = await this.findAuthById(id);
-    auth = await this.incrementAttempts(auth);
-    this.eligibleForValidationOrThrow(auth);
-    this.codeIsValidOrThrow(dto.code, auth.code);
-    return this.authService.auth(<User>auth.user);
+    const updatePartial: Partial<MagicCodeAuth> = { attempts: auth.attempts + 1 }; // increase attempts
+    try {
+      this.eligibleForValidationOrThrow(auth);
+      this.codeIsValidOrThrow(dto.code, auth.code);
+      updatePartial.verifiedAt = new Date(); // reaching this point means that auth is verified.
+      return this.authService.auth(<User>auth.user);
+    } catch (ex) {
+      throw ex;
+    } finally {
+      // update auth object
+      this.magicCodeAuthRepository.updateById(HelperService.id(auth), updatePartial)
+    }
   }
 
   private incrementAttempts(auth: MagicCodeAuth) {
