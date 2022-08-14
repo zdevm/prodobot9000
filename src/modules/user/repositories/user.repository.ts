@@ -18,6 +18,11 @@ export class UserRepository {
     return this.model.create(user).then(UserRepository.transform);
   }
 
+  updateById(id: string, partial: Partial<User>) {
+    return this.model.findByIdAndUpdate(id, partial, { new: true })
+                     .then(doc => <User>UserRepository.transform(doc));
+  }
+
   findById(id: string): Promise<User | undefined> {
     return this.model.findById(id).then(doc => <User>UserRepository.transform(doc))
   }

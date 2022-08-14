@@ -1,7 +1,13 @@
+import { AuthUserId } from '@modules/auth/decorators/auth-user.decorator';
 import { JwtGuard } from '@modules/auth/decorators/jwt-guard.decorator';
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Request, ValidationPipe } from '@nestjs/common';
+import { AppAbility } from '@modules/casl/classes/casl-ability.factory';
+import { UserAbility } from '@modules/casl/decorators/user-ability';
+import { CreateUserAbilityInterceptor } from '@modules/casl/interceptors/create-user-ability/create-user-ability.interceptor';
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Put, Request, UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { PermissionsHelperService } from '@services/permissions-helper.service';
 import { Request as ExpressRequest } from 'express';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './services/user/user.service';
 
 @Controller('users')
@@ -22,6 +28,34 @@ export class UserController {
     } catch (ex) {
       throw new BadRequestException();
     }
+  }
+
+  /**
+   * Updates specified user (id param) or user performing the request.
+   * @param dto 
+   * @param loggedInUserId Authorized user's id
+   * @param id Input user id
+   * @param ability user ability (permissions)
+   * @returns 
+   */
+
+  @Put(':id?')
+  @JwtGuard()
+  @UseInterceptors(CreateUserAbilityInterceptor)
+  async update(@Body(ValidationPipe) dto: UpdateUserDto,
+               @AuthUserId() loggedInUserId: string,
+               @Param('id') id?: string,
+               @UserAbility() ability?: AppAbility) {
+    const userId = id ?? loggedInUserId;
+    if (!userId) {
+      throw new BadRequestException();
+    }
+    const user = await this.userService.findById(userId);
+    PermissionsHelperService.canUpdateOrThrow(user, ability)
+    if (!user) {
+      throw new NotFoundException();
+    }
+    return await this.userService.updateById(userId, dto);
   }
 
   @Get(':email/exists')

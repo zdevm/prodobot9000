@@ -1,3 +1,4 @@
+import { User } from '@modules/user/classes/user';
 import { RegisterUserDto } from '@modules/user/dto/register-user.dto';
 import { UserRepository } from '@modules/user/repositories/user.repository';
 import { Injectable } from '@nestjs/common';
@@ -9,6 +10,10 @@ export class UserService {
 
   register(user: RegisterUserDto) {
     return this.userRepository.create(user);
+  }
+
+  updateById(id: string, partial: Partial<User>) {
+    return this.userRepository.updateById(id, partial);
   }
 
   findById(id: string) {
