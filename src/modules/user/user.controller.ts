@@ -3,7 +3,7 @@ import { JwtGuard } from '@modules/auth/decorators/jwt-guard.decorator';
 import { AppAbility } from '@modules/casl/classes/casl-ability.factory';
 import { UserAbility } from '@modules/casl/decorators/user-ability';
 import { CreateUserAbilityInterceptor } from '@modules/casl/interceptors/create-user-ability/create-user-ability.interceptor';
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Put, Request, UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Put, Request, UseInterceptors, ValidationPipe } from '@nestjs/common';
 import { PermissionsHelperService } from '@services/permissions-helper.service';
 import { Request as ExpressRequest } from 'express';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -56,6 +56,24 @@ export class UserController {
       throw new NotFoundException();
     }
     return await this.userService.updateById(userId, dto);
+  }
+
+  @Delete(':id?')
+  @JwtGuard()
+  @UseInterceptors(CreateUserAbilityInterceptor)
+  async delete(@AuthUserId() loggedInUserId: string,
+               @Param('id') id?: string,
+               @UserAbility() ability?: AppAbility) {
+    const userId = id ?? loggedInUserId;
+    if (!userId) {
+      throw new BadRequestException();
+    }
+    const user = await this.userService.findById(userId);
+    PermissionsHelperService.canDeleteOrThrow(user, ability)
+    if (!user) {
+      throw new NotFoundException();
+    }
+    return await this.userService.deleteById(userId);
   }
 
   @Get(':email/exists')

@@ -16,6 +16,10 @@ export class UserService {
     return this.userRepository.updateById(id, partial);
   }
 
+  deleteById(id: string) {
+    return this.userRepository.deleteById(id);
+  }
+
   findById(id: string) {
     return this.userRepository.findById(id);
   }

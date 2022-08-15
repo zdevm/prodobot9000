@@ -23,6 +23,11 @@ export class UserRepository {
                      .then(doc => <User>UserRepository.transform(doc));
   }
 
+  deleteById(id: string) {
+    return this.model.findByIdAndDelete(id)
+                     .then(doc => <User>UserRepository.transform(doc));
+  }
+
   findById(id: string): Promise<User | undefined> {
     return this.model.findById(id).then(doc => <User>UserRepository.transform(doc))
   }
