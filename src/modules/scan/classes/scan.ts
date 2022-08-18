@@ -29,4 +29,12 @@ export class Scan {
     @Type(() => Date)
     completedAt?: Date;
 
+    @Expose()
+    @Type(() => Date)
+    createdAt: Date;
+
+    @Expose()
+    @Type(() => Date)
+    updatedAt: Date;
+
 }

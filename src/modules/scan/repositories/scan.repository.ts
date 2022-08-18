@@ -22,8 +22,13 @@ export class ScanRepository {
     return this.model.findById(id, {}, { populate: 'rates' }).then(doc => <Scan>ScanRepository.transform(doc))
   }
 
+  findLatestByProduct(productId: string) {
+    return this.model.findOne({ product: productId }, {}, { populate: 'rates', sort: '-_id' })
+                     .then(doc => <Scan>ScanRepository.transform(doc))
+  }
+
   updateById(id: string, dto: Partial<Scan>) {
-    return this.model.findByIdAndUpdate(id, dto, { new: true }).then(doc => <Scan>ScanRepository.transform(doc))
+    return this.model.findByIdAndUpdate(id, dto, { new: true, populate: 'rates' }).then(doc => <Scan>ScanRepository.transform(doc))
   }
 
   static transform(doc): Scan | Scan[] {

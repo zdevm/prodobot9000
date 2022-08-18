@@ -9,8 +9,8 @@ import { ProductRateModule } from '@modules/product-rate/product-rate.module';
 import { CaslModule } from '@modules/casl/casl.module';
 import { BullModule } from '@nestjs/bull';
 import { ProductConsumer, ProductQueueName } from './queue/consumers/product.consumer';
-import { ScanRepository } from '../scan/repositories/scan.repository';
 import { ScanModule } from '@modules/scan/scan.module';
+import { EventModule } from '@modules/event/event.module';
 
 @Module({
   imports: [
@@ -20,8 +20,9 @@ import { ScanModule } from '@modules/scan/scan.module';
     BullModule.registerQueue({ name: ProductQueueName }),
     RateProviderModule,
     CaslModule,
+    EventModule,
     forwardRef(() => ProductRateModule),
-    forwardRef(() => ScanModule),
+    forwardRef(() => ScanModule)
   ],
   providers: [
     ProductService,

@@ -1,6 +1,5 @@
 import { CaslModule } from '@modules/casl/casl.module';
 import { ProductModule } from '@modules/product/product.module';
-import { MongooseProduct } from '@modules/product/schemas/product.schema';
 import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ScanRepository } from './repositories/scan.repository';

@@ -27,4 +27,15 @@ export class ScanController {
     return scan;
   }
 
+  @Get('product/:productId/latest')
+  async findLatestByProduct(@Param('productId', IsMongoIdPipe) productId: string,
+                            @UserAbility() userAbility?: AppAbility) {
+    await PermissionsHelperService.canReadOrThrowAsync(this.productService.findById(productId), userAbility);
+    const scan = await this.scanService.findLatestByProduct(productId);
+    if (!scan) {
+      throw new NotFoundException();
+    }
+    return scan;
+  }
+
 }

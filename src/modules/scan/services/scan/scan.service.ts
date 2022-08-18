@@ -15,6 +15,10 @@ export class ScanService {
     return this.scanRepository.findById(id);
   }
 
+  findLatestByProduct(productId: string) {
+    return this.scanRepository.findLatestByProduct(productId);
+  }
+
   updateById(id: string, dto: Partial<Scan>) {
     return this.scanRepository.updateById(id, dto);
   }

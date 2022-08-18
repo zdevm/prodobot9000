@@ -7,6 +7,8 @@ import { HelperService } from "@services/helper.service";
 import { ScanStatus } from "@modules/scan/enums/scan-status.enum";
 import { Scan } from "@modules/scan/classes/scan";
 import { ScanService } from "@modules/scan/services/scan/scan.service";
+import { EventService } from "@modules/event/services/event/event.service";
+import { ScanUpdatedMessage } from "@modules/scan/messages/scan-updated.message";
 
 export const ProductQueueName = 'Product';
 
@@ -14,7 +16,8 @@ export const ProductQueueName = 'Product';
 export class ProductConsumer {
 
   constructor(@Inject(forwardRef(() => ProductService)) private readonly productService: ProductService,
-              private readonly scanService: ScanService) { }
+              private readonly scanService: ScanService,
+              private readonly eventService: EventService) { }
 
   @Process(ScanPriceJobName)
   async scanForPrices(job: Job<ScanPricesPayload>) {
@@ -24,6 +27,7 @@ export class ProductConsumer {
     if (!product) {
       throw new Error('Product not found!')
     }
+    const userId = HelperService.id(product.user);
     const productId = HelperService.id(product);
     // filter providers
     const providersToScan = payload.providersToScan;
@@ -41,6 +45,7 @@ export class ProductConsumer {
     if (!scan) {
       throw new Error('Failed to update scan!');
     }
+    this.emitUpdateScanMessage(userId, scan);
     let scanUpdatePartial: Partial<Scan> = {};
     try {
       const rates = await this.productService.scanPrices(productId, { providersToScan });
@@ -54,11 +59,16 @@ export class ProductConsumer {
       throw ex;
     } finally {
       scanUpdatePartial.completedAt = new Date();
-      this.scanService.updateById(scanId, scanUpdatePartial).catch(ex => {
+      scan = await this.scanService.updateById(scanId, scanUpdatePartial).catch(ex => {
         this.scanService.updateById(scanId, { status: ScanStatus.Failed }) // fallback update
         throw ex;
-      })
+      });
+      this.emitUpdateScanMessage(userId, scan);
     }
+  }
+
+  private emitUpdateScanMessage(userId: string, scan: Scan) {
+    this.eventService.emit(userId, new ScanUpdatedMessage(scan));
   }
 
   @OnGlobalQueueError()
