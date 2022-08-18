@@ -19,6 +19,7 @@ import redis from '@configurations/redis';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { BullModule } from '@nestjs/bull';
 import { ScanModule } from './modules/scan/scan.module';
+import { EventModule } from './modules/event/event.module';
 import queue from '@configurations/queue';
 
 const moduleImports = new Map<string, DynamicModule>();
@@ -74,12 +75,13 @@ moduleImports.set('bull', BullModule.forRootAsync({
     UserModule,
     AuthModule,
     MagicCodeAuthModule,
+    ScanModule,
+    EventModule,
     moduleImports.get('config'),
     moduleImports.get('mongoose'),
     moduleImports.get('mailer'),
     moduleImports.get('redis'),
-    moduleImports.get('bull'),
-    ScanModule
+    moduleImports.get('bull')
   ],
   controllers: [AppController],
   providers: [AppService],

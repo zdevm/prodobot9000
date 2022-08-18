@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 export class HelperService {
 
   /**
@@ -30,6 +31,10 @@ export class HelperService {
       return val;
     }
     return [val];
+  }
+
+  static generateUuid() {
+    return uuidv4(); 
   }
 
 }
