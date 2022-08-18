@@ -47,7 +47,10 @@ moduleImports.set('mailer', MailerModule.forRootAsync({
 
 moduleImports.set('redis', RedisModule.forRootAsync({
   useFactory: (configService: ConfigService) => ({
-    config: { url: configService.getOrThrow('redis.url') }
+    config: {
+      url: configService.getOrThrow('redis.url'),
+      keyPrefx: configService.getOrThrow('redis.prefix')
+    }
   }),
   inject: [ConfigService]
 }))
