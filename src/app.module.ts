@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigModuleOptions, ConfigService } from '@nestjs/config';
+import { DynamicModule, Module } from '@nestjs/common';
+import { ConfigModule,  ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import paths from '@configurations/paths';
@@ -20,51 +20,61 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import { BullModule } from '@nestjs/bull';
 import queue from '@configurations/queue';
 
-const configSettings: ConfigModuleOptions = {
+const moduleImports = new Map<string, DynamicModule>();
+
+moduleImports.set('config', ConfigModule.forRoot({
   isGlobal: true,
   load: [paths, jwt, mailer, redis, queue]
-}
+}))
+
+moduleImports.set('mongoose', MongooseModule.forRootAsync({
+  useFactory: async (configService: ConfigService) => ({
+    uri: configService.getOrThrow('MONGODB_URI'),
+    useNewUrlParser: true
+  }),
+  inject: [ConfigService]
+}))
+
+moduleImports.set('mailer', MailerModule.forRootAsync({
+  useFactory: (configService: ConfigService) => ({
+    transport: configService.getOrThrow('mailer.smtpUrl'),
+    defaults: {
+      from: `${configService.getOrThrow('mailer.fromName')}" <${configService.getOrThrow('mailer.fromSender')}>`,
+    },
+  }),
+  inject: [ConfigService]
+}))
+
+moduleImports.set('redis', RedisModule.forRootAsync({
+  useFactory: (configService: ConfigService) => ({
+    config: { url: configService.getOrThrow('redis.url') }
+  }),
+  inject: [ConfigService]
+}))
+
+moduleImports.set('bull', BullModule.forRootAsync({
+  useFactory: (configService: ConfigService) => ({
+    url: configService.getOrThrow('redis.url'),
+    prefix: configService.getOrThrow('queue.prefix')
+  }),
+  inject: [ConfigService]
+}))
 
 @Module({
   imports: [
     ExtensionsManagerModule,
-    ConfigModule.forRoot(configSettings),
     RateProviderModule,
     ProductModule,
-    MongooseModule.forRootAsync({
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.getOrThrow('MONGODB_URI'),
-        useNewUrlParser: true
-      }),
-      inject: [ConfigService]
-    }),
-    MailerModule.forRootAsync({
-      useFactory: (configService: ConfigService) => ({
-        transport: configService.getOrThrow('mailer.smtpUrl'),
-        defaults: {
-          from: `${configService.getOrThrow('mailer.fromName')}" <${configService.getOrThrow('mailer.fromSender')}>`,
-        },
-      }),
-      inject: [ConfigService]
-    }),
     ProductRateModule,
     UploadModule,
     UserModule,
     AuthModule,
     MagicCodeAuthModule,
-    RedisModule.forRootAsync({
-      useFactory: (configService: ConfigService) => ({
-        config: { url: configService.getOrThrow('redis.url') }
-      }),
-      inject: [ConfigService]
-    }),
-    BullModule.forRootAsync({
-      useFactory: (configService: ConfigService) => ({
-        url: configService.getOrThrow('redis.url'),
-        prefix: configService.getOrThrow('queue.prefix')
-      }),
-      inject: [ConfigService]
-    }),
+    moduleImports.get('config'),
+    moduleImports.get('mongoose'),
+    moduleImports.get('mailer'),
+    moduleImports.get('redis'),
+    moduleImports.get('bull')
   ],
   controllers: [AppController],
   providers: [AppService],
