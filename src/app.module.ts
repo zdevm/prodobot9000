@@ -17,10 +17,12 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import mailer from '@configurations/mailer';
 import redis from '@configurations/redis';
 import { RedisModule } from '@nestjs-modules/ioredis';
+import { BullModule } from '@nestjs/bull';
+import queue from '@configurations/queue';
 
 const configSettings: ConfigModuleOptions = {
   isGlobal: true,
-  load: [paths, jwt, mailer, redis]
+  load: [paths, jwt, mailer, redis, queue]
 }
 
 @Module({
@@ -55,7 +57,14 @@ const configSettings: ConfigModuleOptions = {
         config: { url: configService.getOrThrow('redis.url') }
       }),
       inject: [ConfigService]
-    })
+    }),
+    BullModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        url: configService.getOrThrow('redis.url'),
+        prefix: configService.getOrThrow('queue.prefix')
+      }),
+      inject: [ConfigService]
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
