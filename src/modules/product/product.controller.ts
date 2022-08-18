@@ -9,6 +9,7 @@ import { PermissionsHelperService } from '@services/permissions-helper.service';
 import { IsMongoIdPipe } from 'src/pipes/is-mongo-id.pipe';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ScanTrigger } from '../scan/enums/scan-trigger.enum';
 import { ProductService } from './services/product/product.service';
 
 @Controller('products')
@@ -67,7 +68,7 @@ export class ProductController {
                    @Query('mock') mock: boolean = false,
                    @UserAbility() userAbility?: AppAbility) {
     await PermissionsHelperService.canReadOrThrowAsync(this.productService.findById(productId), userAbility);
-    return this.productService.scanPrices(productId, mock);
+    return await this.productService.scanPricesInQueue(productId, { mock, trigger: ScanTrigger.Manual } );
   }
 
   // TODO validate form

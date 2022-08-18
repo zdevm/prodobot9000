@@ -5,13 +5,18 @@ import { ProductRateService } from '@modules/product-rate/services/product-rate/
 import { Product } from '@modules/product/classes/product';
 import { CreateProductDto } from '@modules/product/dto/create-product.dto';
 import { UpdateProductDto } from '@modules/product/dto/update-product.dto';
+import { ScanPriceJobName, ScanPricesPayload } from '@modules/product/queue/consumers/jobs/scan-prices.job';
+import { ProductQueueName } from '@modules/product/queue/consumers/product.consumer';
 import { ProductRepository } from '@modules/product/repositories/product.repository';
 import { RateProviderService } from '@modules/rate-provider/services/rate-provider/rate-provider.service';
+import { ScanService } from '@modules/scan/services/scan/scan.service';
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HelperService } from '@services/helper.service';
+import { Queue } from 'bull';
 import { readFileSync } from 'fs';
-import { set, remove, compact } from 'lodash';
+import { set, remove, compact, pick } from 'lodash';
 
 @Injectable()
 export class ProductService {
@@ -19,7 +24,9 @@ export class ProductService {
   public constructor(private readonly productRepository: ProductRepository,
                      private readonly productRateService: ProductRateService,
                      private readonly rateProviderService: RateProviderService,
-                     private readonly configService: ConfigService) {}
+                     private readonly scanService: ScanService,
+                     private readonly configService: ConfigService,
+                     @InjectQueue(ProductQueueName) private readonly productQueue: Queue) {}
 
   getProductsPaginated(paginateOptions: PaginateOptions = new PaginateOptions()): Promise<Pagination<Product>> {
     return this.productRepository.getProductsPaginated(paginateOptions);
@@ -101,9 +108,27 @@ export class ProductService {
     return updatedProduct;
   }
 
-  async scanPrices(id: string, mock = false) {
+  async scanPricesInQueue(id: string, options: Pick<ScanPricesPayload, 'mock' | 'trigger'>) {
+    const product = await this.findById(id);
+    if (!product) {
+      throw new Error('Specified product does not exist!');
+    }
+    const payload: Partial<ScanPricesPayload> = {
+      productId: id,
+      providersToScan: product.providers,
+      ...options
+    }
+    // create scan
+    const scan = await this.scanService.create(id, pick(payload, 'providersToScan', 'trigger'));
+    payload.scanId = HelperService.id(scan);
+    // enqueue job
+    await this.productQueue.add(ScanPriceJobName, payload, { removeOnComplete: true, removeOnFail: true })
+    return scan;
+  }
+
+  async scanPrices(id: string, options?: { providersToScan?: string[], mock?: boolean }): Promise<ProductRate[]> {
     // get mock
-    if (mock) {
+    if (!!options?.mock) {
       const mockPath = this.configService.getOrThrow('paths.mock');
       return JSON.parse(readFileSync(`${mockPath}/mock_getProduct.json`).toString('utf8'));
     }
@@ -113,7 +138,8 @@ export class ProductService {
       throw new Error('Specified product was not found!');
     }
     const scanPromises = [];
-    for (const providerSlug of product.providers) {
+    const providersToScan = options?.providersToScan || product.providers
+    for (const providerSlug of providersToScan) {
       const providerGetProductForm = product.providersForms?.[providerSlug]?.getProduct;
       if (!providerGetProductForm) {
         continue;
@@ -123,7 +149,7 @@ export class ProductService {
       scanPromises.push(scanPromise)
     }
     // wait for all providers and filter out providers that failed.
-    let productRates = await Promise.all(scanPromises).then(rates => rates.filter(r => !!r));
+    let productRates = await Promise.all(scanPromises).then(rates => rates.filter(r => !!r)) as ProductRate[];
     if (productRates.length) {
       productRates = await this.productRateService.insertMany(productRates);
     }

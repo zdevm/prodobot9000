@@ -18,6 +18,7 @@ import mailer from '@configurations/mailer';
 import redis from '@configurations/redis';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { BullModule } from '@nestjs/bull';
+import { ScanModule } from './modules/scan/scan.module';
 import queue from '@configurations/queue';
 
 const moduleImports = new Map<string, DynamicModule>();
@@ -77,7 +78,8 @@ moduleImports.set('bull', BullModule.forRootAsync({
     moduleImports.get('mongoose'),
     moduleImports.get('mailer'),
     moduleImports.get('redis'),
-    moduleImports.get('bull')
+    moduleImports.get('bull'),
+    ScanModule
   ],
   controllers: [AppController],
   providers: [AppService],
