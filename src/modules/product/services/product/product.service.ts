@@ -145,7 +145,7 @@ export class ProductService {
         continue;
       }
       const scanPromise = this.rateProviderService.getProduct(providerSlug, providerGetProductForm)
-                                                  .then(rate => this.transformToRateProduct(providerSlug, product, rate), () => undefined) // TODO handle failed response
+                                                  .then(rate => this.transformToRateProduct(providerSlug, product, rate), err =>  undefined) // TODO handle failed response
       scanPromises.push(scanPromise)
     }
     // wait for all providers and filter out providers that failed.

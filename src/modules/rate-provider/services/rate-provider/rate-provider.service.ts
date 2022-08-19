@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Extension } from 'src/modules/extensions-manager/classes/extension';
 import { ExtensionsManagerService } from 'src/modules/extensions-manager/services/extensions-manager.service';
 import { RateProvider } from '@modules/rate-provider/interfaces/rate-provider.interface';
-import { lastValueFrom, map } from 'rxjs';
+import { lastValueFrom, map, Observable } from 'rxjs';
 import { RateProviderFormOptions } from '@modules/rate-provider/interfaces/form-options.interface';
 import { Currency } from '@enums/currency.enum';
 
@@ -30,7 +30,15 @@ export class RateProviderService implements RateProvider {
   async getProduct(provider: string, dto: any) { 
     const ext = this.getExtension(provider);
     const obs$ = this.httpService.post<{price: number; currency: Currency}>(`${ext.endpoint}/price`, dto, { timeout: 60000 })
-                                 .pipe(map(res => res.data))
+                                 .pipe(
+                                    map(res => {
+                                      const rateRaw = res.data;
+                                      if (rateRaw?.price === undefined) {
+                                        throw new Error('Failed to obtain price.')
+                                      }
+                                      return rateRaw;
+                                    })
+                                  ) as Observable<{price: number; currency: Currency}>;
     return lastValueFrom(obs$);
   }
 
