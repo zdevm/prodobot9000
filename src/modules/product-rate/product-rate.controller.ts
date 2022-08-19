@@ -23,4 +23,11 @@ export class ProductRateController {
     return this.productRateService.getLatestOfEachProvider(productId);
   }
 
+  @Get(':productId/history')
+  async getPriceHistoryOfProduct(@Param('productId', IsMongoIdPipe) productId: string,
+                                 @UserAbility() ability?: AppAbility) {
+    await PermissionsHelperService.canReadOrThrowAsync(this.productService.findById(productId), ability)
+    return this.productRateService.getPriceHistoryOfProduct(productId);
+  }
+
 }

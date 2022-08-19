@@ -19,4 +19,8 @@ export class ProductRateService {
     return this.repository.getLatestOfEachProvider(productId);
   }
 
+  getPriceHistoryOfProduct(productId: string) {
+    return this.repository.getPriceHistoryOfProduct(productId);
+  }
+
 }
