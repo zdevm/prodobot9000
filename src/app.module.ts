@@ -23,6 +23,7 @@ import { EventModule } from './modules/event/event.module';
 import queue from '@configurations/queue';
 import demo from '@configurations/demo';
 import { DemoModule } from '@modules/demo/demo.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 const moduleImports = new Map<string, DynamicModule>();
 
@@ -80,6 +81,7 @@ moduleImports.set('bull', BullModule.forRootAsync({
     ScanModule,
     EventModule,
     DemoModule,
+    NotificationModule,
     moduleImports.get('config'),
     moduleImports.get('mongoose'),
     moduleImports.get('mailer'),

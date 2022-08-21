@@ -10,18 +10,21 @@ import { UserNotFoundException } from '@modules/magic-code-auth/exceptions/user-
 import { MagicCodeAuthRepository } from '@modules/magic-code-auth/repositories/magic-code-auth.repository';
 import { User } from '@modules/user/classes/user';
 import { UserService } from '@modules/user/services/user/user.service';
-import { MailerService } from '@nestjs-modules/mailer';
 import { Inject, Injectable } from '@nestjs/common';
 import { HelperService } from '@services/helper.service';
 import { addMinutes, isBefore  } from 'date-fns'
 import { DemoConfigInjectionToken } from '@modules/demo/demo.module';
+import { Queue } from 'bull';
+import { NotificationQueueName } from '@modules/notification/queue/consumers/notification.consumer';
+import { EmailJobName, EmailJobPayload } from '@modules/notification/queue/jobs/email.job';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class MagicCodeAuthService {
   public constructor(private readonly magicCodeAuthRepository: MagicCodeAuthRepository,
-                     private readonly mailerService: MailerService,
                      private readonly userService: UserService,
                      private readonly authService: AuthService,
+                     @InjectQueue(NotificationQueueName) private readonly notificationQueue: Queue,
                      @Inject(DemoConfigInjectionToken) private readonly demoConfig: DemoConfig) {}
 
   async startValidation(dto: StartValidationDto) {
@@ -29,7 +32,7 @@ export class MagicCodeAuthService {
     const user = await this.getUserByEmail(dto.email);
     const code = isDemo ? (this.demoConfig.code || '123456') : this.generateCode();
     const magicAuth = await this.createMagicAuth(HelperService.id(user), code);
-    const messageInfo = await this.sendCode(user.email, code);
+    await this.sendCode(user.email, code);
     return magicAuth;
   }
 
@@ -90,14 +93,17 @@ export class MagicCodeAuthService {
     })
   }
 
-  private sendCode(email: string, code: string) {
-    return this.mailerService
-      .sendMail({
-        to: email,
-        subject: 'A magic code is waiting for you!',
-        text: `Here is your magic code: ${code}`, // plaintext body
-        html: `Here is your magic code: <b>${code}</b>`, // HTML body content
-      })
+  private async sendCode(email: string, code: string) {
+    const jobPayload: EmailJobPayload = {
+      to: email,
+      subject: 'A magic code is waiting for you!',
+      text: `Here is your magic code: ${code}`, // plaintext body
+      html: `Here is your magic code: <b>${code}</b>`, // HTML body content
+    }
+    await this.notificationQueue.add(EmailJobName, jobPayload, {
+      backoff: 3,
+      timeout: 30 * 1000
+    })
   }
 
   private generateCode(): string {

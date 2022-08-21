@@ -6,6 +6,7 @@ import { MagicCodeAuthRepository } from './repositories/magic-code-auth.reposito
 import { MongooseModule } from '@nestjs/mongoose';
 import { MagicCodeAuthSchema, MongooseMagicCodeAuth } from './schemas/magic-code.schema';
 import { AuthModule } from '@modules/auth/auth.module';
+import { NotificationModule } from '@modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { AuthModule } from '@modules/auth/auth.module';
     AuthModule,
     MongooseModule.forFeature([
       { name: MongooseMagicCodeAuth.name, schema: MagicCodeAuthSchema }
-    ])
+    ]),
+    NotificationModule
   ],
   providers: [
     MagicCodeAuthService,
