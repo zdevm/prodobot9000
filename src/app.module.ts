@@ -21,12 +21,14 @@ import { BullModule } from '@nestjs/bull';
 import { ScanModule } from './modules/scan/scan.module';
 import { EventModule } from './modules/event/event.module';
 import queue from '@configurations/queue';
+import demo from '@configurations/demo';
+import { DemoModule } from '@modules/demo/demo.module';
 
 const moduleImports = new Map<string, DynamicModule>();
 
 moduleImports.set('config', ConfigModule.forRoot({
   isGlobal: true,
-  load: [paths, jwt, mailer, redis, queue]
+  load: [paths, jwt, mailer, redis, queue, demo]
 }))
 
 moduleImports.set('mongoose', MongooseModule.forRootAsync({
@@ -77,6 +79,7 @@ moduleImports.set('bull', BullModule.forRootAsync({
     MagicCodeAuthModule,
     ScanModule,
     EventModule,
+    DemoModule,
     moduleImports.get('config'),
     moduleImports.get('mongoose'),
     moduleImports.get('mailer'),

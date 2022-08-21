@@ -1,3 +1,4 @@
+import { DemoConfig } from '@modules/demo/interfaces/demo-config.interface';
 import { AuthService } from '@modules/auth/services/auth/auth.service';
 import { MagicCodeAuth } from '@modules/magic-code-auth/classes/magic-code-auth';
 import { FinishValidationDto } from '@modules/magic-code-auth/dto/finish-validation.dto';
@@ -10,20 +11,23 @@ import { MagicCodeAuthRepository } from '@modules/magic-code-auth/repositories/m
 import { User } from '@modules/user/classes/user';
 import { UserService } from '@modules/user/services/user/user.service';
 import { MailerService } from '@nestjs-modules/mailer';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { HelperService } from '@services/helper.service';
 import { addMinutes, isBefore  } from 'date-fns'
+import { DemoConfigInjectionToken } from '@modules/demo/demo.module';
 
 @Injectable()
 export class MagicCodeAuthService {
   public constructor(private readonly magicCodeAuthRepository: MagicCodeAuthRepository,
                      private readonly mailerService: MailerService,
                      private readonly userService: UserService,
-                     private readonly authService: AuthService) {}
+                     private readonly authService: AuthService,
+                     @Inject(DemoConfigInjectionToken) private readonly demoConfig: DemoConfig) {}
 
   async startValidation(dto: StartValidationDto) {
+    const isDemo = dto.email === this.demoConfig.email;
     const user = await this.getUserByEmail(dto.email);
-    const code = this.generateCode();
+    const code = isDemo ? (this.demoConfig.code || '123456') : this.generateCode();
     const magicAuth = await this.createMagicAuth(HelperService.id(user), code);
     const messageInfo = await this.sendCode(user.email, code);
     return magicAuth;
@@ -43,10 +47,6 @@ export class MagicCodeAuthService {
       // update auth object
       this.magicCodeAuthRepository.updateById(HelperService.id(auth), updatePartial)
     }
-  }
-
-  private incrementAttempts(auth: MagicCodeAuth) {
-    return this.magicCodeAuthRepository.updateById(HelperService.id(auth), { attempts: auth.attempts + 1 })
   }
 
   private codeIsValidOrThrow(input: string, original: string) {

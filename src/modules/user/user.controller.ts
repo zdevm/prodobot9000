@@ -3,7 +3,9 @@ import { JwtGuard } from '@modules/auth/decorators/jwt-guard.decorator';
 import { AppAbility } from '@modules/casl/classes/casl-ability.factory';
 import { UserAbility } from '@modules/casl/decorators/user-ability';
 import { CreateUserAbilityInterceptor } from '@modules/casl/interceptors/create-user-ability/create-user-ability.interceptor';
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Put, Request, UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { DemoConfigInjectionToken } from '@modules/demo/demo.module';
+import { DemoConfig } from '@modules/demo/interfaces/demo-config.interface';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, Inject, NotFoundException, Param, Post, Put, Request, UseInterceptors, ValidationPipe } from '@nestjs/common';
 import { PermissionsHelperService } from '@services/permissions-helper.service';
 import { Request as ExpressRequest } from 'express';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -13,7 +15,8 @@ import { UserService } from './services/user/user.service';
 @Controller('users')
 export class UserController {
 
-  public constructor(private readonly userService: UserService) {}
+  public constructor(private readonly userService: UserService,
+                     @Inject(DemoConfigInjectionToken) private readonly demoConfig: DemoConfig) {}
 
   @Get('me')
   @JwtGuard()
@@ -69,6 +72,9 @@ export class UserController {
       throw new BadRequestException();
     }
     const user = await this.userService.findById(userId);
+    if (this.checkIfDemoEmail(user.email)) {
+      throw new ForbiddenException('Cannot delete DEMO account');
+    }
     PermissionsHelperService.canDeleteOrThrow(user, ability)
     if (!user) {
       throw new NotFoundException();
@@ -83,6 +89,10 @@ export class UserController {
     if (!user) {
       throw new NotFoundException();
     }
+  }
+
+  private checkIfDemoEmail(email: string) {
+    return email === this.demoConfig.email;
   }
 
 }
