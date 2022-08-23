@@ -24,12 +24,13 @@ import queue from '@configurations/queue';
 import demo from '@configurations/demo';
 import { DemoModule } from '@modules/demo/demo.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import upload from '@configurations/upload';
 
 const moduleImports = new Map<string, DynamicModule>();
 
 moduleImports.set('config', ConfigModule.forRoot({
   isGlobal: true,
-  load: [paths, jwt, mailer, redis, queue, demo]
+  load: [paths, jwt, mailer, redis, queue, demo, upload]
 }))
 
 moduleImports.set('mongoose', MongooseModule.forRootAsync({
