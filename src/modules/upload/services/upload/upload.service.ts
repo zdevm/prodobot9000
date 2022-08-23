@@ -9,16 +9,17 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class LocalUploadService implements UploadService {
-  private uploadsPath: string;
+  private uploadsPath?: string;
 
   public constructor(private configService: ConfigService,
                      private localFileRepository: LocalFileRepository) {
-    this.uploadsPath = this.configService.get('paths.uploads');
+    this.uploadsPath = this.configService.get('upload.filesPath');
   }
 
   saveFile(file: Express.Multer.File): Promise<File>
   saveFile(filename: string, data: Buffer, mimeType: string): Promise<File>
   async saveFile(...args: any[]): Promise<File> {
+    // TODO compress images
     const firstArg = args[0];
     let file: File;
     // save file to /uploads
@@ -39,31 +40,35 @@ export class LocalUploadService implements UploadService {
 
   private fileSave(filename: string, data: Buffer, details?: { mimeType: string; }): Promise<File> {
     return new Promise(async (resolve, reject) => {
-      // check if there is already a file with same name in database
-      const fileInDb = await this.localFileRepository.findByFilename(filename);
-      // a file with same name already exists
-      // try appending a number in filename, until it filename is unique
-      if (fileInDb) {
-        const num = new Date().getTime() + Math.ceil(Math.random() * 100000);
-        resolve(this.fileSave(this.appendBeforeExt(filename, `_${num.toString()}`), data, details));
-        return;
-      }
-      // write file to /uploads
-      const fileExt = extname(filename);
-      const savePath = this.prepareSaveFilePath(`${uuidv4()}${fileExt}`);
-      writeFile(savePath, data, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          const f = new File();
-          f.filename = filename;
-          f.fullPath = savePath;
-          f.mimeType = details?.mimeType;
-          f.ext = fileExt.substring(1) || ''; // substring to remove dot
-          f.storage = 'local';
-          resolve(f)
+      try {
+        // check if there is already a file with same name in database
+        const fileInDb = await this.localFileRepository.findByFilename(filename);
+        // a file with same name already exists
+        // try appending a number in filename, until it filename is unique
+        if (fileInDb) {
+          const num = new Date().getTime() + Math.ceil(Math.random() * 100000);
+          resolve(this.fileSave(this.appendBeforeExt(filename, `_${num.toString()}`), data, details));
+          return;
         }
-      });
+        // write file to uploads path
+        const fileExt = extname(filename);
+        const savePath = this.prepareSaveFilePath(`${uuidv4()}${fileExt}`);
+        writeFile(savePath, data, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            const f = new File();
+            f.filename = filename;
+            f.fullPath = savePath;
+            f.mimeType = details?.mimeType;
+            f.ext = fileExt.substring(1) || ''; // substring to remove dot
+            f.storage = 'local';
+            resolve(f)
+          }
+        });
+      } catch (ex) {
+        reject(ex);
+      }
     }) 
   }
 
@@ -76,6 +81,9 @@ export class LocalUploadService implements UploadService {
    * @param filename 
    */
   private prepareSaveFilePath(filename: string) {
+    if (!this.uploadsPath) {
+      throw new Error('Files path is not specified!');
+    }
     return join(this.uploadsPath, filename || '');
   }
 

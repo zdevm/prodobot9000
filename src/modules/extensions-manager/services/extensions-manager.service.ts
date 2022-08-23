@@ -40,6 +40,7 @@ export class ExtensionsManagerService {
           json = JSON.parse(data)
           json.filePath = filePath;
         } catch (ex) {
+          reject(ex);
         } finally {
           resolve(json);
         }
