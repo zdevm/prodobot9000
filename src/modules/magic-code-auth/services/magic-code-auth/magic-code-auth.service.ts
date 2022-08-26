@@ -32,7 +32,9 @@ export class MagicCodeAuthService {
     const user = await this.getUserByEmail(dto.email);
     const code = isDemo ? (this.demoConfig.code || '123456') : this.generateCode();
     const magicAuth = await this.createMagicAuth(HelperService.id(user), code);
-    await this.sendCode(user.email, code);
+    if (!isDemo) {
+      await this.sendCode(user.email, code);
+    }
     return magicAuth;
   }
 
