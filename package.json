@@ -1,7 +1,7 @@
 {
   "name": "prodobot9000",
-  "version": "1.0.0",
-  "description": "Monitor the price of your favorite products!",
+  "version": "0.0.1",
+  "description": "Monitor the price of your favorite products easily!",
   "author": "Marios Zafeiriou",
   "private": true,
   "license": "MIT",
