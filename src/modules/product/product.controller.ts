@@ -4,7 +4,7 @@ import { JwtGuard } from '@modules/auth/decorators/jwt-guard.decorator';
 import { AppAbility } from '@modules/casl/classes/casl-ability.factory';
 import { UserAbility } from '@modules/casl/decorators/user-ability';
 import { CreateUserAbilityInterceptor } from '@modules/casl/interceptors/create-user-ability/create-user-ability.interceptor';
-import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, Query,  UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, Query,  UseInterceptors, ValidationPipe } from '@nestjs/common';
 import { PermissionsHelperService } from '@services/permissions-helper.service';
 import { IsMongoIdPipe } from 'src/pipes/is-mongo-id.pipe';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -67,7 +67,14 @@ export class ProductController {
   async scanPrices(@Param('id', IsMongoIdPipe) productId: string,
                    @Query('mock') mock: boolean = false,
                    @UserAbility() userAbility?: AppAbility) {
-    await PermissionsHelperService.canReadOrThrowAsync(this.productService.findById(productId), userAbility);
+    const product = await this.productService.findById(productId);
+    if (!product) {
+      throw new NotFoundException();
+    }
+    PermissionsHelperService.canReadOrThrow(product, userAbility);
+    if (!product.providers.length) {
+      throw new BadRequestException('Product has no price providers');
+    }
     return await this.productService.scanPricesInQueue(productId, { mock, trigger: ScanTrigger.Manual } );
   }
 
