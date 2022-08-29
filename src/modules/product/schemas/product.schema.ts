@@ -22,7 +22,7 @@ export class MongooseProduct {
   @Prop({ type: [SchemaTypes.String], default: () => [] })
   providers: string[];
 
-  @Prop({ type: SchemaTypes.Mixed, default: () => {} })
+  @Prop({ type: SchemaTypes.Mixed, default: () => ({}) })
   providersForms: any;
 
   @Prop({ type: SchemaTypes.ObjectId, ref: MongooseFile.name })
