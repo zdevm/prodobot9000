@@ -14,8 +14,12 @@ export class ExtensionsManagerService {
   }
 
   scanForExtensions() {
-    const fileNames = readdirSync(this.extensionsPath).filter(file => extname(file) === '.json')
-    return fileNames;
+    try {
+      const fileNames = readdirSync(this.extensionsPath).filter(file => extname(file) === '.json')
+      return fileNames;      
+    } catch (ex) {
+      return [];
+    }
   }
 
   async loadExtensions(exclude?: string[]): Promise<Extension[]> {
