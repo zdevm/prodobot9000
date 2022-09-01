@@ -4,7 +4,7 @@ import { plainToInstance } from "class-transformer";
 import { Model, mongo } from "mongoose";
 import { ProductRate } from "../classes/product-rate";
 import { MongooseProductRate, ProductRateDocument } from "../schemas/product-rate.schema";
-import { pick } from 'lodash';
+import { pick, sortBy } from 'lodash';
 
 export class ProductRateRepository {
 
@@ -110,7 +110,7 @@ export class ProductRateRepository {
       results.push(result);
     }
 
-    return results;
+    return sortBy(results, 'date');
   }
 
 
